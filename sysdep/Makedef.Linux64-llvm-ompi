@@ -1,0 +1,54 @@
+#
+# ------ FOR Linux 64bit & gfortran4.7 & OpenMPI1.10 -----
+#
+FFLAGS_FAST  = -cpp -O3 -m64 \
+               -std=f2018 -fimplicit-none \
+               -fconvert=big-endian                \
+               -funroll-loops                       \
+               -mcmodel=medium
+
+FFLAGS_DEBUG = -cpp -O0 -m64 \
+               -std=f2018 -fimplicit-none \
+               -fconvert=big-endian                \
+               -g \
+               -DDEBUG
+
+FC     = mpifort
+FFLAGS = $(FFLAGS_FAST)
+FFLAGS = $(FFLAGS_DEBUG)
+
+CFLAGS_FAST  = -O3 -m64 -std=c99 -mcmodel=medium
+CFLAGS_DEBUG = -O0 -m64 -std=c99 -mcmodel=medium -g -fbacktrace
+
+CC     = mpicc
+CFLAGS = $(CFLAGS_FAST)
+#CFLAGS = $(CFLAGS_DEBUG)
+
+##### Special Options #####
+
+ifeq ($(ENABLE_OPENMP),T)
+	FFLAGS += -fopenmp
+endif
+
+ifeq ($(ENABLE_NETCDF),T)
+	FFLAGS      += $(shell nf-config --fflags)
+	CFLAGS      += $(shell nc-config --cflags)
+	NETCDF_LIBS ?= $(shell nf-config --flibs) $(shell nc-config --libs)
+endif
+
+LAPACK_LIBS ?=
+
+###########################
+
+MODDIROPT ?= -J $(BUILDDIR)
+OBJDIR    ?= $(BUILDDIR)
+
+LD     = $(FC)
+LFLAGS = $(FFLAGS)
+
+MAKE    = make
+INSTALL = cp -u
+AR      = ar
+ARFLAGS = r
+RANLIB  = ranlib
+JOBSUB  = sh
